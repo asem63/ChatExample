@@ -2,12 +2,20 @@
     <div class="container">
         <div class="row">
             <div class="logo col-md-3"><a href="/">SUPERCHAT</a></div>
-            <div class ="col-md-5"><a href="/roomlist">All Rooms</a></div>
-            <div class ="col-md-4">
-                <div class="auth">
+            <div class ="menu {% if logged %}col-md-6{% else %}col-md-5{% endif %}">
+                <div class="menu-el {% if logged %}col-md-3{% else %}col-md-10{% endif %}"><a href="/roomlist">All Rooms</a></div>
+                {% if logged %}
+                    <div class="menu-el col-md-3"><a href="/createroom">Create Room</a></div>
+                    <div class="menu-el col-md-3"><a href="/roomsoptions">My Rooms</a></div>
+                {% endif %}
+            </div>
+            <div class ="auth {% if logged %}col-md-3{% else %}col-md-4{% endif %}">
+                {% if logged %}
+                    <div class="logout col-md-10"><a href="/logout">Sign out</a></div>
+                {% else %}
                     <div class="login col-md-5"><a href="/login">Sign in</a></div>
                     <div class="register col-md-5"><a href="/register">Sign up</a></div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
