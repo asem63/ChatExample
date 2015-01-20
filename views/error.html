@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block title %}{{title}}{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="/stylesheets/error.css"/>
+{% endblock %}
+
+{% block content %}
+    <div class="error text-center">{{error.message}}</div>
+{% endblock %}
