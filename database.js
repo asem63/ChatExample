@@ -49,7 +49,7 @@ exports.getUserInfo = function(userName, callbackFn){
     });
 };
 
-exports.createRoom = function(roomName, password){
+exports.createRoom = function(roomName, password, userName){
     client.incr("unique_room_id", function(err, id) {
         if (err){
             return console.error("incr unique_room_id failed");
@@ -65,11 +65,17 @@ exports.createRoom = function(roomName, password){
                 if (err){
                     return console.error("hash generation failed");
                 }
-                client.hset("room_passwords", roomName, hash, function(err){
+                client.hmset(roomName, "creator", userName, "password", hash, function(err){
                     if (err){
-                        return console.error("hset room password hash failed");
+                        return console.error("hmset room password hash failed");
                     }
                 });
+            });
+        }else{
+            client.hmset(roomName, "creator", userName, "password", null, function(err){
+                if (err){
+                    return console.error("hmset room password hash failed");
+                }
             });
         }
     });
@@ -84,10 +90,10 @@ exports.getAllRoomNames = function(callbackFn){
     });
 };
 
-exports.gatRoomPasswordHash = function(roomName, callbackFn){
-    hget("room_passwords", roomName, function(err, pass){
+exports.getRoomInfo = function(roomName, callbackFn){
+    client.hgetall(roomName, function(err, pass){
         if (err){
-            return console.error("hget room password hash failed");
+            return console.error("hgetall room failed");
         }
         callbackFn(pass);
     });
