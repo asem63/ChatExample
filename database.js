@@ -52,15 +52,56 @@ function insertUserInfo (userName, password, id){
     });
 }
 
-function changeUserInfo(userName, password, callbackFn){
+function changeUserName(userName, newUserName, callbackFn){
     client.hexists("users", userName, function(err, exists){
         if(err){
-            return console.error("hexist rooms failed");
+            return console.error("hexist users failed");
         }
 
         if(exists){
             getUserId(userName, function(id){
-                insertUserInfo(userName, password, id);
+                client.hdel("users", userName, function (err) {
+                    if (err){
+                        return console.error("hdel user name failed");
+                    }
+                });
+                client.hset("users", newUserName, id, function (err) {
+                    if (err){
+                        return console.error("hset user id failed");
+                    }
+                });
+
+                client.hset("user:"+id, "userName", newUserName, function(err){
+                    if (err){
+                        return console.error("hset user password hash failed");
+                    }
+                });
+            });
+        }else{
+            callbackFn(err);
+        }
+    });
+}
+
+function changeUserPass(userName, password, callbackFn){
+    client.hexists("users", userName, function(err, exists){
+        if(err){
+            return console.error("hexist users failed");
+        }
+
+        if(exists){
+            getUserId(userName, function(id){
+                bcrypt.hash(password, 8, function(err, hash) {
+                    if (err){
+                        return console.error("hash generation failed");
+                    }
+
+                    client.hset("user:"+id, "password", hash, function(err){
+                        if (err){
+                            return console.error("hset user password hash failed");
+                        }
+                    });
+                });
             });
         }else{
             callbackFn(err);
@@ -109,6 +150,7 @@ function addRoomToDb(roomName, password, userName){
         if (err){
             return console.error("incr unique_room_id failed");
         }
+
         client.hset("rooms", roomName, id, function (err) {
             if (err){
                 return console.error("hset room id failed");
@@ -142,6 +184,78 @@ function addRoomToDb(roomName, password, userName){
                 }
             });
         }
+    });
+}
+
+function changeRoomName(roomName, newRoomName, callbackFn){
+    client.hexists("rooms", roomName, function(err, exists){
+        if(err){
+            return console.error("hexist rooms failed");
+        }
+
+        if(exists){
+            getRoomId(roomName, function(id){
+                client.hdel("rooms", roomName, function (err) {
+                    if (err){
+                        return console.error("hdel room name failed");
+                    }
+                });
+                client.hset("rooms", newRoomName, id, function (err) {
+                    if (err){
+                        return console.error("hset room id failed");
+                    }
+                });
+                client.hset("room:" + id, "room_name", newRoomName, function(err){
+                    if (err){
+                        return console.error("hset room name failed");
+                    }
+                });
+            });
+        }else{
+            callbackFn(err);
+        }
+    });
+}
+
+function changeRoomPass(roomName, newPassword, callbackFn){
+    client.hexists("rooms", roomName, function(err, exists){
+        if(err){
+            return console.error("hexist rooms failed");
+        }
+
+        if(exists){
+            getRoomId(roomName, function(id){
+                if(newPassword !== ""){
+                    bcrypt.hash(newPassword, 8, function(err, hash) {
+                        if (err){
+                            return console.error("hash generation failed");
+                        }
+                        client.hmset("room:" + id, "password", hash, function(err){
+                            if (err){
+                                return console.error("hset room password hash failed");
+                            }
+                        });
+                    });
+                }else{
+                    client.hmset("room:" + id, "password", "", function(err){
+                        if (err){
+                            return console.error("hmset room password hash failed");
+                        }
+                    });
+                }
+            });
+        }else{
+            callbackFn(err);
+        }
+    });
+}
+
+function getRoomId(roomName, callbackFn){
+    client.hget("rooms", roomName, function (err, roomId) {
+        if (err){
+            return console.error("hget room id failed");
+        }
+        callbackFn(err, roomId);
     });
 }
 
@@ -193,11 +307,14 @@ function getMessageRange(roomName, start, end, callbackFn){
 
 module.exports.getMessageRange = getMessageRange;
 module.exports.saveMessage = saveMessage;
+
+module.exports.createRoom = createRoom;
 module.exports.getRoomInfo = getRoomInfo;
 module.exports.getAllRoomNames = getAllRoomNames;
+module.exports.changeRoomName = changeRoomName;
+module.exports.changeRoomPass = changeRoomPass;
 
 module.exports.createUser = createUser;
-module.exports.getUserId = getUserId;
 module.exports.getUserInfo = getUserInfo;
-module.exports.changeUserInfo = changeUserInfo;
-module.exports.createRoom = createRoom;
+module.exports.changeUserName = changeUserName;
+module.exports.changeUserPass = changeUserPass;
