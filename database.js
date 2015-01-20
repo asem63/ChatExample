@@ -16,7 +16,7 @@ exports.createRoom = function(roomName){
         });
     });
 
-}
+};
 
 exports.saveMessage = function(message, roomName){
     client.incr(roomName + "_message_count", function(err, count) {
@@ -29,7 +29,7 @@ exports.saveMessage = function(message, roomName){
             }
         });
     });
-}
+};
 
 exports.getMessageRange = function(roomName, start, end, callbackFn){
     var argsArr = []
@@ -43,4 +43,4 @@ exports.getMessageRange = function(roomName, start, end, callbackFn){
         }
         callbackFn(result);
     });
-}
+};
