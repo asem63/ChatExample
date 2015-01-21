@@ -2,14 +2,24 @@
 
 {% block title %}All Rooms{% endblock %}
 {% block css %}
-<link rel="stylesheet" href="/stylesheets/index.css"/>
+<link rel="stylesheet" href="/stylesheets/home.css"/>
 {% endblock %}
 
 {% block js %}
 {% endblock %}
 
 {% block content %}
-    {% for room in rooms%}
+    <div class="table-container">
+        <div class="title text-center">{{ user.userName }} rooms</div>
+        <table class="table">
+            {% for room in rooms%}
+            <tr>
+                <td><a href="/rooms/{{ room.room_name }}">{{ room.room_name }}</a></td>
+                <td>{{ room.room_descr }}</td>
+                <td><a href="/rooms/edit/{{ room.room_name }}">Edit room</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 
-    {% endfor %}
 {% endblock %}

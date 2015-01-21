@@ -38,11 +38,11 @@ initPassport(passport);
 //Configuring routes
 var routes = require('./routes/index')(passport);
 var users = require('./routes/users');
-var chat = require('./routes/chat');
+var room = require('./routes/room')(passport);
 
 app.use('/', routes);
 app.use('/users', users);
-app.use('/chat', chat);
+app.use('/room', room);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

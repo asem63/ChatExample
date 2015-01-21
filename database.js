@@ -33,7 +33,6 @@ function addNewUserToDb(userName, password, callbackFn){
 }
 
 function insertUserInfo (userName, password, id, callbackFn){
-    console.log("INSERTING USER:"+userName);
     client.hset("users", userName, id, function (err) {
         if (err){
             return console.error("hset user id failed");
@@ -142,7 +141,7 @@ function getUserInfo(userId, callbackFn){
 //    });
 //}
 
-function addNewRoomToDb(roomName, password, userName){
+function addNewRoomToDb(roomName, password, userName, roomDescr){
     client.incr("unique_room_id", function(err, id) {
         if (err){
             return console.error("incr unique_room_id failed");
@@ -155,7 +154,7 @@ function addNewRoomToDb(roomName, password, userName){
         });
 
         getUserId(userName, function (err, userId) {
-            client.hset("userIdToRoomId", userId, id, function (err) {
+            client.hset("userRooms:" + userId, id, roomName, function (err) {
                 if (err){
                     return console.error("hset room id failed");
                 }
@@ -167,14 +166,14 @@ function addNewRoomToDb(roomName, password, userName){
                 if (err){
                     return console.error("hash generation failed");
                 }
-                client.hmset("room:" + id, "room_name", roomName, "password", hash, function(err){
+                client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", hash, function(err){
                     if (err){
                         return console.error("hmset room password hash failed");
                     }
                 });
             });
         }else{
-            client.hmset("room:" + id, "room_name", roomName, "password", "", function(err){
+            client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", "", function(err){
                 if (err){
                     return console.error("hmset room password hash failed");
                 }
@@ -252,6 +251,24 @@ function getRoomId(roomName, callbackFn){
             return console.error("hget room id failed");
         }
         callbackFn(err, roomId);
+    });
+}
+
+function getUserRooms(userName, callbackFn){
+    getUserId(userName, function (err, userId) {
+        client.hkeys("userRooms:" + userId, function (err, result) {
+            if (err){
+                return console.error("hgetall userRooms id failed");
+            }
+            var multi = client.multi();
+            result.forEach(function(val, index){
+                multi.hgetall("room:" + val);
+            });
+            multi.exec(function(err, replies){
+                callbackFn(err, replies);
+            });
+
+        });
     });
 }
 
@@ -336,6 +353,7 @@ module.exports.addNewRoomToDb = addNewRoomToDb;
 module.exports.getRoomInfo = getRoomInfo;
 module.exports.getRoomId = getRoomId;
 module.exports.getAllRoomNames = getAllRoomNames;
+module.exports.getUserRooms = getUserRooms;
 module.exports.changeRoomName = changeRoomName;
 module.exports.changeRoomPass = changeRoomPass;
 
