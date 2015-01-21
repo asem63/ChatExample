@@ -275,14 +275,14 @@ function getUserRooms(userName, callbackFn){
 }
 
 function getAllRooms(callbackFn){
-    client.hgetall("rooms", function(err, roomIds){
+    client.hvals("rooms", function(err, roomIds){
         if (err){
-            return console.error("hgetall rooms failed");
+            return console.error("hvals rooms failed");
         }
 
         var multi = client.multi();
-        Object.keys(roomIds).forEach(function (key) {
-            multi.hgetall("room:" + roomIds[key]);
+        roomIds.forEach(function (val) {
+            multi.hgetall("room:" + val);
         });
 
         multi.exec(function(err, replies){
