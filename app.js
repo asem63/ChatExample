@@ -5,16 +5,6 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var swig = require('swig');
-var flash = require('connect-flash');
-// Configuring Passport
-var passport = require('passport');
-var initPassport = require('./passport/init');
-var expressSession = require('express-session');
-
-//Configuring routes
-var routes = require('./routes/index');
-var users = require('./routes/users');
-var chat = require('./routes/chat');
 
 var app = express();
 
@@ -32,11 +22,23 @@ app.use(cookieParser());
 app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(flash());
+// Configuring Passport
+var passport = require('passport');
+var expressSession = require('express-session');
 app.use(expressSession({secret: 'JN5%N32nlk'}));
 app.use(passport.initialize());
 app.use(passport.session());
+
+var flash = require('connect-flash');
+app.use(flash());
+
+var initPassport = require('./passport/init');
 initPassport(passport);
+
+//Configuring routes
+var routes = require('./routes/index')(passport);
+var users = require('./routes/users');
+var chat = require('./routes/chat');
 
 app.use('/', routes);
 app.use('/users', users);

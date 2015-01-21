@@ -2,6 +2,7 @@
  * Created by asem63 on 21/01/15.
  */
 var db = require("./../database");
+var LocalStrategy   = require('passport-local').Strategy;
 var bcrypt = require("bcrypt");
 
 

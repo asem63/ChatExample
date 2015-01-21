@@ -13,12 +13,11 @@ module.exports = function(passport){
 
     passport.deserializeUser(function(id, done) {
         db.getUserInfo(id, function (err, userInfo) {
-            done(err, userInfo);
+            done(err, {id: userInfo[0], name: userInfo[1], password: userInfo[2]});
         });
     });
 
     // Setting up Passport Strategies for Login and SignUp/Registration
     login(passport);
     signup(passport);
-
-}
+};
