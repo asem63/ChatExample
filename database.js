@@ -10,19 +10,6 @@ client.on("error", function (err) {
 });
 
 
-//function createUser(userName, password, callbackFn){
-//    client.hexists("users", userName, function(err, exists){
-//        if(err){
-//            return console.error("hexist users failed");
-//        }
-//        if(exists){
-//            callbackFn(err);
-//        }else{
-//            addNewUserToDB(userName, password);
-//        }
-//    });
-//}
-
 function addNewUserToDb(userName, password, callbackFn){
     client.incr("unique_user_id", function(err, id) {
         if (err){
@@ -128,18 +115,6 @@ function getUserInfo(userId, callbackFn){
     });
 }
 
-//function createRoom(roomName, password, userName, callbackFn){
-//    client.hexists("rooms", roomName, function(err, exists){
-//        if(err){
-//            return console.error("hexist rooms failed");
-//        }
-//        if(exists){
-//            callbackFn(err);
-//        }else{
-//            addNewRoomToDb(roomName, password, userName);
-//        }
-//    });
-//}
 
 function addNewRoomToDb(roomName, password, userName, roomDescr){
     client.incr("unique_room_id", function(err, id) {
@@ -242,6 +217,37 @@ function changeRoomPass(roomName, newPassword, callbackFn){
         }else{
             callbackFn(err);
         }
+    });
+}
+
+function deleteRoom (roomName, userId, callbackFn){
+    getRoomId(roomName, function (err, roomId) {
+        var multi = client.multi();
+
+        multi.hdel("rooms", roomName, function (err) {
+            if (err){
+                return console.error("hdel rooms key failed");
+            }
+        });
+
+        multi.del("room:" + roomId, function(err){
+            if (err){
+                return console.error("del room hash failed");
+            }
+        });
+
+        multi.hdel("userRooms:" + userId, roomId, function(err){
+            if (err){
+                return console.error("hdel userRooms key failed");
+            }
+        });
+
+        multi.exec(function (err) {
+            if (err){
+                return console.error("multi.exec error");
+            }
+            callbackFn(err);
+        });
     });
 }
 
@@ -366,6 +372,7 @@ module.exports.getAllRooms = getAllRooms;
 module.exports.getUserRooms = getUserRooms;
 module.exports.changeRoomInfo = changeRoomInfo;
 module.exports.changeRoomPass = changeRoomPass;
+module.exports.deleteRoom = deleteRoom;
 
 module.exports.addNewUserToDb = addNewUserToDb;
 module.exports.getUserInfo = getUserInfo;
