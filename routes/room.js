@@ -9,8 +9,19 @@ module.exports = function(passport){
     res.render('chat', { title: 'Chat' });
   });
 
+  router.get("/allrooms", function(req, res){
+    db.getAllRooms(function (err, rooms) {
+      if (err){
+        console.log('Error in getting user rooms: '+err);
+        return res.render("allrooms", { message: req.flash("message"), rooms: null});
+      }
+
+      return res.render("allrooms", { message: req.flash("message"), rooms: rooms});
+    });
+  });
+
   router.get("/createroom", mid.isAuthenticated, function(req, res){
-    res.render("createRoom", { user: req.user });
+    res.render("createRoom");
   });
 
   router.post("/createroom", mid.isAuthenticated, function(req, res){

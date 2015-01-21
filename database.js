@@ -260,10 +260,12 @@ function getUserRooms(userName, callbackFn){
             if (err){
                 return console.error("hgetall userRooms id failed");
             }
+
             var multi = client.multi();
             result.forEach(function(val, index){
                 multi.hgetall("room:" + val);
             });
+
             multi.exec(function(err, replies){
                 callbackFn(err, replies);
             });
@@ -272,12 +274,20 @@ function getUserRooms(userName, callbackFn){
     });
 }
 
-function getAllRoomNames(callbackFn){
-    client.hkeys("rooms", function(err, rooms){
+function getAllRooms(callbackFn){
+    client.hgetall("rooms", function(err, roomIds){
         if (err){
-            return console.error("hkeys rooms failed");
+            return console.error("hgetall rooms failed");
         }
-        callbackFn(err, rooms);
+
+        var multi = client.multi();
+        Object.keys(roomIds).forEach(function (key) {
+            multi.hgetall("room:" + roomIds[key]);
+        });
+
+        multi.exec(function(err, replies){
+            callbackFn(err, replies);
+        });
     });
 }
 
@@ -352,7 +362,7 @@ module.exports.saveMessage = saveMessage;
 module.exports.addNewRoomToDb = addNewRoomToDb;
 module.exports.getRoomInfo = getRoomInfo;
 module.exports.getRoomId = getRoomId;
-module.exports.getAllRoomNames = getAllRoomNames;
+module.exports.getAllRooms = getAllRooms;
 module.exports.getUserRooms = getUserRooms;
 module.exports.changeRoomName = changeRoomName;
 module.exports.changeRoomPass = changeRoomPass;

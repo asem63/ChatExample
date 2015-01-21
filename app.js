@@ -35,6 +35,12 @@ app.use(flash());
 var initPassport = require('./passport/init');
 initPassport(passport);
 
+// add user to locals for template use
+app.use(function(req, res, next) {
+    res.locals.user = req.user;
+    next();
+});
+
 //Configuring routes
 var routes = require('./routes/index')(passport);
 var users = require('./routes/users');
@@ -50,6 +56,8 @@ app.use(function(req, res, next) {
     err.status = 404;
     next(err);
 });
+
+
 
 // error handlers
 

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}All Rooms{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="/stylesheets/allrooms.css"/>
+{% endblock %}
+
+{% block js %}
+{% endblock %}
+
+{% block content %}
+<div class="table-container">
+    <div class="title text-center">All rooms</div>
+    <table class="table">
+        {% for room in rooms%}
+        <tr>
+            <td><a href="/rooms/room/{{ room.room_name }}">{{ room.room_name }}</a></td>
+            <td>{{ room.room_descr }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

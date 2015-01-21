@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}All Rooms{% endblock %}
+{% block title %}Home{% endblock %}
 {% block css %}
 <link rel="stylesheet" href="/stylesheets/home.css"/>
 {% endblock %}
@@ -14,7 +14,7 @@
         <table class="table">
             {% for room in rooms%}
             <tr>
-                <td><a href="/rooms/{{ room.room_name }}">{{ room.room_name }}</a></td>
+                <td><a href="/rooms/room/{{ room.room_name }}">{{ room.room_name }}</a></td>
                 <td>{{ room.room_descr }}</td>
                 <td><a href="/rooms/edit/{{ room.room_name }}">Edit room</a></td>
             </tr>

@@ -8,11 +8,11 @@ module.exports = function(passport){
   /* GET login page. */
   router.get("/", function(req, res) {
     // Display the Login page with any flash message, if any
-    res.render("index", { message: req.flash("message"), sampleText: "Werks", user:req.user });
+    res.render("index", { message: req.flash("message"), sampleText: "Werks"});
   });
   /* Handle Login POST */
   router.get("/login", function(req, res){
-    res.render("login", { message: req.flash("message"), user:req.user });
+    res.render("login", { message: req.flash("message") });
   });
   /* Handle Login POST */
   router.post("/login", passport.authenticate("login", {
@@ -38,10 +38,10 @@ module.exports = function(passport){
     db.getUserRooms(req.user.userName, function(err, rooms){
       if (err){
         console.log('Error in getting user rooms: '+err);
-        return res.render("home", { user: req.user, message: req.flash("message"), rooms: null});
+        return res.render("home", { message: req.flash("message"), rooms: null});
       }
 
-      return res.render("home", { user: req.user, message: req.flash("message"), rooms: rooms});
+      return res.render("home", { message: req.flash("message"), rooms: rooms});
     });
   });
 
