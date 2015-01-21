@@ -33,6 +33,7 @@ function addNewUserToDb(userName, password, callbackFn){
 }
 
 function insertUserInfo (userName, password, id, callbackFn){
+    console.log("INSERTING USER:"+userName);
     client.hset("users", userName, id, function (err) {
         if (err){
             return console.error("hset user id failed");

@@ -8,12 +8,15 @@ var signup = require('./signup');
 module.exports = function(passport){
 
     passport.serializeUser(function(user, done) {
+        console.log("SERIALIZING:"+user);
         done(null, user.id);
     });
 
     passport.deserializeUser(function(id, done) {
+        console.log("DESERIALIZING:"+id);
         db.getUserInfo(id, function (err, userInfo) {
-            done(err, {id: userInfo[0], name: userInfo[1], password: userInfo[2]});
+            console.log("DESERIALIZING:"+userInfo.userName);
+            done(err, userInfo);
         });
     });
 

@@ -8,16 +8,18 @@ var bcrypt = require("bcrypt");
 
 module.exports = function(passport){
     passport.use('login', new LocalStrategy({
+            usernameField: 'email',
+            passwordField: 'password',
             passReqToCallback : true
         },
-        function(req, username, password, done) {
+        function(req, email, password, done) {
             // check in db if a user with username exists or not
-            db.getUserId(username, function (err, userId) {
+            db.getUserId(email, function (err, userId) {
                 if (err)
                     return done(err);
                 // Username does not exist, log error & redirect back
                 if (!userId){
-                    console.log('User Not Found with username '+username);
+                    console.log('User Not Found with username '+email);
                     return done(null, false,
                         req.flash('message', 'User Not found.'));
                 }

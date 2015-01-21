@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Room creation{% endblock %}
+{% block css %}
+<link rel="stylesheet" href="/stylesheets/roomcreate.css"/>
+{% endblock %}
+
+{% block js %}
+{% endblock %}
+
+{% block content %}
+<div class="col-sm-6 col-sm-offset-3">
+
+    <h1><span class="fa fa-sign-in"></span> Room creation</h1>
+
+    <!-- show any messages that come back with authentication -->
+    {% if message.length > 0 %}
+    <div class="alert alert-danger">{{ message }}</div>
+    {% endif %}
+
+    <!-- LOGIN FORM -->
+    <form action="/createroom" method="post">
+        <div class="form-group">
+            <label>Room name</label>
+            <input type="text" class="form-control" name="roomname">
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <div class="text-left">Leave blanc to create public room</div>
+            <input type="password" class="form-control" name="password">
+        </div>
+
+        <button type="submit" class="btn btn-warning btn-lg">Create</button>
+    </form>
+
+</div>
+{% endblock %}
