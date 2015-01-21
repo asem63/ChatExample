@@ -182,7 +182,7 @@ function addNewRoomToDb(roomName, password, userName, roomDescr){
     });
 }
 
-function changeRoomName(roomName, newRoomName, callbackFn){
+function changeRoomInfo(roomName, newRoomName, newRoomDescr, callbackFn){
     client.hexists("rooms", roomName, function(err, exists){
         if(err){
             return console.error("hexist rooms failed");
@@ -200,7 +200,7 @@ function changeRoomName(roomName, newRoomName, callbackFn){
                         return console.error("hset room id failed");
                     }
                 });
-                client.hset("room:" + id, "room_name", newRoomName, function(err){
+                client.hmset("room:" + id, "room_name", newRoomName, "room_descr", newRoomDescr, function(err){
                     if (err){
                         return console.error("hset room name failed");
                     }
@@ -364,7 +364,7 @@ module.exports.getRoomInfo = getRoomInfo;
 module.exports.getRoomId = getRoomId;
 module.exports.getAllRooms = getAllRooms;
 module.exports.getUserRooms = getUserRooms;
-module.exports.changeRoomName = changeRoomName;
+module.exports.changeRoomInfo = changeRoomInfo;
 module.exports.changeRoomPass = changeRoomPass;
 
 module.exports.addNewUserToDb = addNewUserToDb;

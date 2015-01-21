@@ -11,8 +11,19 @@
             </div>
             <div class ="auth {% if user %}col-md-3{% else %}col-md-4{% endif %}">
                 {% if user %}
-                    <div class="user"><a href="/user/{{ user.id }}">{{ user.userName }}</a></div>
-                    <div class="logout"><a href="/signout">Sign out</a></div>
+
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                        {{ user.userName }}
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/user/changeinfo">Change User Information</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/user/changepass">Change User Password</a></li>
+                        <li role="presentation"><a role="menuitem" tabindex="-1" href="/signout">Sign out</a></li>
+                    </ul>
+                </div>
+
                 {% else %}
                     <div class="login col-md-5"><a href="/login">Sign in</a></div>
                     <div class="register col-md-5"><a href="/signup">Sign up</a></div>

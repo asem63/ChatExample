@@ -45,6 +45,18 @@ module.exports = function(passport){
     });
   });
 
+  /* GET change user info page */
+  router.get("/user/changeinfo", function(req, res) {
+    // Display the Login page with any flash message, if any
+    res.render("userEditInfo");
+  });
+
+  /* GET change user password page */
+  router.get("/user/changepass", function(req, res) {
+    // Display the Login page with any flash message, if any
+    res.render("userEditPass");
+  });
+
   /* Handle Logout */
   router.get("/signout", function(req, res) {
     req.logout();
