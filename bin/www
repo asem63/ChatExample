@@ -32,17 +32,18 @@ server.on('listening', onListening);
 /**
  * Enabling socket.io
  */
-var io = require('socket.io')(server);
+var io = require('socket.io')(server),
+    passportSocketIo = require("passport.socketio");
 
-io.on('connection', function(socket){
-  console.log('a user connected');
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-  socket.on('chat message', function(msg){
-    io.emit('chat message', msg);
-  });
-});
+io.use(passportSocketIo.authorize({
+  cookieParser: app.cookieParser,
+  key:         'express.sid',       // the name of the cookie where express/connect stores its session_id
+  secret:      'JN5%N32nlk',    // the session_secret to parse the cookie
+  store:       app.sessionStore        // we NEED to use a sessionstore. no memorystore please
+}));
+
+var ioHandlers = require("./../chatHandler")(io);
+
 
 /**
  * Normalize a port into a number, string, or false.

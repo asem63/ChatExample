@@ -5,12 +5,32 @@ var router = express.Router();
 
 module.exports = function(passport){
   /* GET simple chat page. */
-  router.get('/sample', function(req, res, next) {
-    res.render('chat', { title: 'Chat' });
+  router.get('/chat/:name', mid.isAuthenticated, function(req, res, next) {
+    var roomName = req.params.name;
+    db.getRoomId(roomName, function (err, roomId) {
+      if (err){
+        req.flash("message", "database error");
+        return res.redirect("/");
+      }
+      if(!roomId){
+        req.flash("message", "Room does not exist")
+        return res.redirect("/");
+      }
+      db.getRoomInfo(roomId, function(err, roomInfo){
+        if (err){
+          req.flash("message", "database error");
+          return res.redirect("/");
+        }
+        res.render('chat', { title: 'Chat', room: roomInfo });
+      });
+
+    });
+
+
   });
 
   /* GET all rooms list. */
-  router.get("/allrooms", function(req, res){
+  router.get("/allrooms", mid.isAuthenticated, function(req, res){
     db.getAllRooms(function (err, rooms) {
       if (err){
         return res.render("allrooms", { message: req.flash("message"), rooms: null});

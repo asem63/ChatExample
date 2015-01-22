@@ -137,9 +137,11 @@ function changeRoomPass(roomId, newPassword, callbackFn){
 function deleteRoom (roomName, roomId, userId, callbackFn){
     var multi = client.multi();
 
-    multi.hdel("rooms", roomName, redis.print);
     multi.del("room:" + roomId, redis.print);
+    multi.del("inRoom:" + roomId, redis.print);
+    multi.hdel("rooms", roomName, redis.print);
     multi.hdel("userRooms:" + userId, roomId, redis.print);
+
     multi.exec(function (err) {
         if (err){
             return console.error("multi.exec error");
@@ -197,12 +199,45 @@ function getAllRooms(callbackFn){
     });
 }
 
-function getRoomInfo(roomName, callbackFn){
-    client.hgetall(roomName, function(err, pass){
+function getRoomInfo(roomId, callbackFn){
+    client.hgetall("room:"+roomId, function(err, pass){
         if (err){
             return console.error("hgetall room failed");
         }
         callbackFn(err, pass);
+    });
+}
+
+function addUserToRoom(user, roomName, callbackFn){
+    getRoomId(roomName, function(err, roomId){
+        client.hset("inRoom:"+roomId, user.id, user.userName, function(err){
+            if (err){
+                return console.error("hset users to room failed");
+            }
+            callbackFn(err);
+        });
+    });
+}
+
+function removeUserFromRoom(userId, roomName, callbackFn){
+    getRoomId(roomName, function(err, roomId){
+        client.hdel("inRoom:"+roomId, userId, function(err){
+            if (err){
+                return console.error("hdet users from room failed");
+            }
+            callbackFn(err);
+        });
+    });
+}
+
+function getAllUserNamesInRoom(roomName, callbackFn){
+    getRoomId(roomName, function(err, roomId){
+        client.hvals("inRoom:"+roomId, function(err, result){
+            if (err){
+                return console.error("hdet users from room failed");
+            }
+            callbackFn(err, result);
+        });
     });
 }
 
@@ -259,3 +294,7 @@ module.exports.getUserInfo = getUserInfo;
 module.exports.getUserId = getUserId;
 module.exports.changeUserName = changeUserName;
 module.exports.changeUserPass = changeUserPass;
+
+module.exports.addUserToRoom = addUserToRoom;
+module.exports.removeUserFromRoom = removeUserFromRoom;
+module.exports.getAllUserNamesInRoom = getAllUserNamesInRoom;

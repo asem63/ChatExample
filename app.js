@@ -25,9 +25,18 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Configuring Passport
 var passport = require('passport');
 var expressSession = require('express-session');
-app.use(expressSession({secret: 'JN5%N32nlk'}));
+var sessionStore = new expressSession.MemoryStore();
+// /var RedisStore = require('connect-redis')(expressSession);
+
+app.use(expressSession({
+    key: 'express.sid',
+    store: sessionStore,
+    secret: 'JN5%N32nlk'
+}));
+
 app.use(passport.initialize());
 app.use(passport.session());
+
 
 var flash = require('connect-flash');
 app.use(flash());
@@ -82,3 +91,5 @@ app.use(function(err, req, res, next) {
 });
 
 module.exports = app;
+module.exports.sessionStore = sessionStore;
+module.exports.cookieParser = cookieParser;
