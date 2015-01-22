@@ -258,6 +258,21 @@ function saveMessage(message, roomName, callbackFn){
     });
 }
 
+function getRoomMessageCount(roomName, callbackFn){
+    getRoomId(roomName, function(err, roomId){
+        if (err){
+            return console.error("getRoomId failed");
+        }
+        client.get(roomId + "_unique_message_id", function(err, count){
+            if (err){
+                return console.error("get room messages count failed");
+            }
+            callbackFn(err, count);
+        });
+    });
+
+}
+
 function getMessageRange(roomName, start, end, callbackFn){
     var argsArr = [];
     for (var i = start; i <= end; i++) {
@@ -274,8 +289,22 @@ function getMessageRange(roomName, start, end, callbackFn){
     });
 }
 
+function getAllMessages(roomName, callbackFn){
+
+    getRoomId(roomName, function(err, roomId){
+        client.hvals("messages:" + roomId, function (err, resultArr) {
+            if (err){
+                return console.error("hmget local room messages failed");
+            }
+            callbackFn(err, resultArr);
+        });
+    });
+}
+
 module.exports.getMessageRange = getMessageRange;
 module.exports.saveMessage = saveMessage;
+module.exports.getRoomMessageCount = getRoomMessageCount;
+module.exports.getAllMessages = getAllMessages;
 
 module.exports.addNewRoomToDb = addNewRoomToDb;
 module.exports.getRoomInfo = getRoomInfo;
