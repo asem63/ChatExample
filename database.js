@@ -134,19 +134,17 @@ function changeRoomPass(roomId, newPassword, callbackFn){
     }
 }
 
-function deleteRoom (roomName, userId, callbackFn){
-    getRoomId(roomName, function (err, roomId) {
-        var multi = client.multi();
+function deleteRoom (roomName, roomId, userId, callbackFn){
+    var multi = client.multi();
 
-        multi.hdel("rooms", roomName, redis.print);
-        multi.del("room:" + roomId, redis.print);
-        multi.hdel("userRooms:" + userId, roomId, redis.print);
-        multi.exec(function (err) {
-            if (err){
-                return console.error("multi.exec error");
-            }
-            callbackFn(err);
-        });
+    multi.hdel("rooms", roomName, redis.print);
+    multi.del("room:" + roomId, redis.print);
+    multi.hdel("userRooms:" + userId, roomId, redis.print);
+    multi.exec(function (err) {
+        if (err){
+            return console.error("multi.exec error");
+        }
+        callbackFn(err);
     });
 }
 

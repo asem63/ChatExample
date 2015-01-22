@@ -110,6 +110,41 @@ module.exports = function(passport){
     });
   });
 
+  /* Handles delete room POST*/
+  router.post("/delete/:roomname", mid.isAuthenticated, function(req, res){
+    var roomName = req.params.roomname;
+
+    db.getRoomId(roomName, function (err, roomId) {
+      if (err) {
+        req.flash("message", "database error");
+        return res.redirect("/home");
+      }
+
+      if (!roomId) {
+        req.flash("message", "Room with this name does not exist")
+        return res.redirect("/home");
+      }
+      db.checkOwner(req.user.id, roomId, function (err, room) {
+        if (err) {
+          req.flash("message", "database error");
+          return res.redirect("/home");
+        }
+
+        if (!room) {
+          req.flash("message", "You don't own this room")
+          return res.redirect("/home");
+        }
+        db.deleteRoom(roomName, roomId, req.user.id, function (err) {
+          if (err) {
+            req.flash("message", "database error");
+            return res.redirect("/home");
+          }
+          res.redirect("/home");
+        });
+      });
+    });
+  });
+
   return router;
 };
 
