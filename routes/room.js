@@ -13,7 +13,6 @@ module.exports = function(passport){
   router.get("/allrooms", function(req, res){
     db.getAllRooms(function (err, rooms) {
       if (err){
-        console.log('Error in getting user rooms: '+err);
         return res.render("allrooms", { message: req.flash("message"), rooms: null});
       }
 
@@ -33,11 +32,9 @@ module.exports = function(passport){
     var roomDescr = req.body.roomdescr;
     db.getRoomId(roomName, function (err, roomId) {
       if (err){
-        console.log('Error in getting user rooms: '+err);
         return res.render("createRoom", { message: req.flash("message"), rooms: null});
       }
       if(roomId){
-        console.log("Room exists");
         req.flash("message", "Room with this name already exists")
         return res.render("createRoom", { message: req.flash("message")});
       }
@@ -47,15 +44,70 @@ module.exports = function(passport){
   });
 
   /* GET change room info page */
-  router.get("/changeinfo/:roomname", function(req, res) {
-    // Display the Login page with any flash message, if any
-    res.render("roomEditInfo");
+  router.get("/changeinfo/:roomname", mid.isAuthenticated, function(req, res) {
+    res.render("roomEditInfo", { roomName: req.params.roomname});
+  });
+
+  /* POST room edited data. */
+  router.post("/changeinfo/:roomname", mid.isAuthenticated, function(req, res){
+    var roomNewName = req.body.newname;
+    var roomNewDescr = req.body.newdescr;
+    var roomName = req.params.roomname;
+
+    db.getRoomId(roomName, function (err, roomId) {
+      if (err){
+        req.flash("message", "database error");
+        return res.render("roomEditInfo", { message: req.flash("message"), roomName: roomName});
+      }
+      db.getRoomId(roomNewName, function (err, roomNewId){
+        if(roomNewId){
+          req.flash("message", "Room with this name already exists")
+          return res.render("roomEditInfo", { message: req.flash("message"), roomName: roomName});
+        }
+        db.changeRoomInfo(roomName, roomId, req.user.id, roomNewName, roomNewDescr, function(err){
+          if (err){
+            req.flash("message", "database error");
+            return res.render("roomEditInfo", { message: req.flash("message"), roomName: roomName});
+          }
+          res.redirect("/home");
+        });
+      });
+    });
   });
 
   /* GET change room password page */
-  router.get("/changepass/:roomname", function(req, res) {
-    // Display the Login page with any flash message, if any
-    res.render("roomEditPass");
+  router.get("/changepass/:roomname", mid.isAuthenticated, function(req, res) {
+    res.render("roomEditPass", { roomName: req.params.roomname});
+  });
+
+  router.post("/changepass/:roomname", mid.isAuthenticated, function(req, res){
+    var roomNewPass = req.body.newpass;
+    var roomName = req.params.roomname;
+
+    db.getRoomId(roomName, function (err, roomId) {
+      if (err){
+        req.flash("message", "database error");
+        return res.render("roomEditPass", { message: req.flash("message"), roomName: roomName});
+      }
+
+      if(!roomId){
+        req.flash("message", "Room with this name does not exist")
+        return res.render("roomEditPass", { message: req.flash("message"), roomName: roomName});
+      }
+      db.checkOwner(req.user.id, roomId, function (err, room) {
+        if (err){
+          req.flash("message", "database error");
+          return res.render("roomEditPass", { message: req.flash("message"), roomName: roomName});
+        }
+
+        if(!room){
+          req.flash("message", "You don't own this room")
+          return res.render("roomEditPass", { message: req.flash("message"), roomName: roomName});
+        }
+        db.changeRoomPass(roomId, roomNewPass);
+        res.redirect("/home");
+      });
+    });
   });
 
   return router;

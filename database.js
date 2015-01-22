@@ -6,7 +6,7 @@ var redis = require("redis"),
     client = redis.createClient();
 
 client.on("error", function (err) {
-    console.log("DBError: " + err);
+    console.error("DBError: " + err);
 });
 
 
@@ -20,11 +20,7 @@ function addNewUserToDb(userName, password, callbackFn){
 }
 
 function insertUserInfo (userName, password, id, callbackFn){
-    client.hset("users", userName, id, function (err) {
-        if (err){
-            return console.error("hset user id failed");
-        }
-    });
+    client.hset("users", userName, id, redis.print);
 
     bcrypt.hash(password, 8, function(err, hash) {
         if (err){
@@ -40,60 +36,29 @@ function insertUserInfo (userName, password, id, callbackFn){
     });
 }
 
-function changeUserName(userName, newUserName, callbackFn){
-    client.hexists("users", userName, function(err, exists){
+function changeUserName(userName, userId, newUserName, callbackFn){
+    var multi = client.multi();
+    multi.hdel("users", userName, redis.print);
+    multi.hset("users", newUserName, userId, redis.print);
+
+    multi.hset("user:"+userId, "userName", newUserName, redis.print);
+    multi.exec(function (err) {
         if(err){
-            return console.error("hexist users failed");
+            return console.error("multi changeUserName failed");
         }
-
-        if(exists){
-            getUserId(userName, function(id){
-                client.hdel("users", userName, function (err) {
-                    if (err){
-                        return console.error("hdel user name failed");
-                    }
-                });
-                client.hset("users", newUserName, id, function (err) {
-                    if (err){
-                        return console.error("hset user id failed");
-                    }
-                });
-
-                client.hset("user:"+id, "userName", newUserName, function(err){
-                    if (err){
-                        return console.error("hset user password hash failed");
-                    }
-                });
-            });
-        }else{
-            callbackFn(err);
-        }
+        callbackFn(err);
     });
 }
 
-function changeUserPass(userName, password, callbackFn){
-    client.hexists("users", userName, function(err, exists){
-        if(err){
-            return console.error("hexist users failed");
+function changeUserPass(userId, password, callbackFn){
+    bcrypt.hash(password, 8, function(err, hash) {
+        if (err){
+            return console.error("hash generation failed");
         }
 
-        if(exists){
-            getUserId(userName, function(id){
-                bcrypt.hash(password, 8, function(err, hash) {
-                    if (err){
-                        return console.error("hash generation failed");
-                    }
-
-                    client.hset("user:"+id, "password", hash, function(err){
-                        if (err){
-                            return console.error("hset user password hash failed");
-                        }
-                    });
-                });
-            });
-        }else{
+        client.hset("user:"+userId, "password", hash, function (err) {
             callbackFn(err);
-        }
+        });
     });
 }
 
@@ -122,18 +87,10 @@ function addNewRoomToDb(roomName, password, userName, roomDescr){
             return console.error("incr unique_room_id failed");
         }
 
-        client.hset("rooms", roomName, id, function (err) {
-            if (err){
-                return console.error("hset room id failed");
-            }
-        });
+        client.hset("rooms", roomName, id, redis.print);
 
         getUserId(userName, function (err, userId) {
-            client.hset("userRooms:" + userId, id, roomName, function (err) {
-                if (err){
-                    return console.error("hset room id failed");
-                }
-            });
+            client.hset("userRooms:" + userId, id, roomName, redis.print);
         });
 
         if(password !== ""){
@@ -141,107 +98,49 @@ function addNewRoomToDb(roomName, password, userName, roomDescr){
                 if (err){
                     return console.error("hash generation failed");
                 }
-                client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", hash, function(err){
-                    if (err){
-                        return console.error("hmset room password hash failed");
-                    }
-                });
+                client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", hash, redis.print);
             });
         }else{
-            client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", "", function(err){
-                if (err){
-                    return console.error("hmset room password hash failed");
-                }
-            });
+            client.hmset("room:" + id, "room_name", roomName, "room_descr", roomDescr, "password", "", redis.print);
         }
     });
 }
 
-function changeRoomInfo(roomName, newRoomName, newRoomDescr, callbackFn){
-    client.hexists("rooms", roomName, function(err, exists){
-        if(err){
-            return console.error("hexist rooms failed");
-        }
+function changeRoomInfo(roomName, roomId, userId, newRoomName, newRoomDescr, callbackFn){
+    var multi = client.multi();
 
-        if(exists){
-            getRoomId(roomName, function(id){
-                client.hdel("rooms", roomName, function (err) {
-                    if (err){
-                        return console.error("hdel room name failed");
-                    }
-                });
-                client.hset("rooms", newRoomName, id, function (err) {
-                    if (err){
-                        return console.error("hset room id failed");
-                    }
-                });
-                client.hmset("room:" + id, "room_name", newRoomName, "room_descr", newRoomDescr, function(err){
-                    if (err){
-                        return console.error("hset room name failed");
-                    }
-                });
-            });
-        }else{
-            callbackFn(err);
+    multi.hdel("rooms", roomName, redis.print);
+    multi.hset("userRooms:" + userId, roomId, newRoomName, redis.print);
+    multi.hset("rooms", newRoomName, roomId, redis.print);
+    multi.hmset("room:" + roomId, "room_name", newRoomName, "room_descr", newRoomDescr, redis.print);
+    multi.exec(function(err){
+        if (err){
+            return console.error("multi change room info failed");
         }
+        callbackFn(err);
     });
 }
 
-function changeRoomPass(roomName, newPassword, callbackFn){
-    client.hexists("rooms", roomName, function(err, exists){
-        if(err){
-            return console.error("hexist rooms failed");
-        }
-
-        if(exists){
-            getRoomId(roomName, function(id){
-                if(newPassword !== ""){
-                    bcrypt.hash(newPassword, 8, function(err, hash) {
-                        if (err){
-                            return console.error("hash generation failed");
-                        }
-                        client.hset("room:" + id, "password", hash, function(err){
-                            if (err){
-                                return console.error("hset room password hash failed");
-                            }
-                        });
-                    });
-                }else{
-                    client.hset("room:" + id, "password", "", function(err){
-                        if (err){
-                            return console.error("hset room password hash failed");
-                        }
-                    });
-                }
-            });
-        }else{
-            callbackFn(err);
-        }
-    });
+function changeRoomPass(roomId, newPassword, callbackFn){
+    if(newPassword !== ""){
+        bcrypt.hash(newPassword, 8, function(err, hash) {
+            if (err){
+                return console.error("hash generation failed");
+            }
+            client.hset("room:" + roomId, "password", hash, redis.print);
+        });
+    }else{
+        client.hset("room:" + roomId, "password", "", redis.print);
+    }
 }
 
 function deleteRoom (roomName, userId, callbackFn){
     getRoomId(roomName, function (err, roomId) {
         var multi = client.multi();
 
-        multi.hdel("rooms", roomName, function (err) {
-            if (err){
-                return console.error("hdel rooms key failed");
-            }
-        });
-
-        multi.del("room:" + roomId, function(err){
-            if (err){
-                return console.error("del room hash failed");
-            }
-        });
-
-        multi.hdel("userRooms:" + userId, roomId, function(err){
-            if (err){
-                return console.error("hdel userRooms key failed");
-            }
-        });
-
+        multi.hdel("rooms", roomName, redis.print);
+        multi.del("room:" + roomId, redis.print);
+        multi.hdel("userRooms:" + userId, roomId, redis.print);
         multi.exec(function (err) {
             if (err){
                 return console.error("multi.exec error");
@@ -260,23 +159,26 @@ function getRoomId(roomName, callbackFn){
     });
 }
 
-function getUserRooms(userName, callbackFn){
-    getUserId(userName, function (err, userId) {
-        client.hkeys("userRooms:" + userId, function (err, result) {
-            if (err){
-                return console.error("hgetall userRooms id failed");
-            }
+function getUserRooms(userId, callbackFn){
+    client.hkeys("userRooms:" + userId, function (err, result) {
+        if (err){
+            return console.error("hgetall userRooms id failed");
+        }
 
-            var multi = client.multi();
-            result.forEach(function(val, index){
-                multi.hgetall("room:" + val);
-            });
-
-            multi.exec(function(err, replies){
-                callbackFn(err, replies);
-            });
-
+        var multi = client.multi();
+        result.forEach(function(val, index){
+            multi.hgetall("room:" + val);
         });
+
+        multi.exec(function(err, replies){
+            callbackFn(err, replies);
+        });
+    });
+}
+
+function checkOwner (userId, roomId, callbackFn){
+    client.hget("userRooms:" + userId, roomId, function(err, result){
+        callbackFn(err, result);
     });
 }
 
@@ -311,36 +213,15 @@ function saveMessage(message, roomName, userName){
         if (err){
             return console.error("incr unique_massage_count failed");
         }
-        //getUserId(userName, function(err, userId){
-        //    client.hset("userIdToMessageId", userId, messageId, function (err) {
-        //        if (err){
-        //            return console.error("hset UserId ->messageId hash=userIdToMessageId failed");
-        //        }
-        //    });
-        //});
+
         getRoomId(roomName, function(err, roomId){
             client.incr(roomId + "_unique_message_id", function(err, roomMessageId) {
                 if (err){
                     return console.error("incr room_unique_massage_id failed");
                 }
                 // Message content = json string {userName:name, content:content}
-                client.hset("messages:" + roomId, roomMessageId, message, function (err) {
-                    if (err){
-                        return console.error("hset room message failed");
-                    }
-                });
+                client.hset("messages:" + roomId, roomMessageId, message, redis.print);
 
-                //client.hset("messageIdToRoomMessageId", messageId, roomMessageId,  function (err) {
-                //    if (err){
-                //        return console.error("hset room localMessageIds failed");
-                //    }
-                //});
-                //
-                //client.hset("roomIdToMessageId", roomId, messageId, function (err) {
-                //    if (err){
-                //        return console.error("hset roomId->messageId hash=roomIdToMessageId failed");
-                //    }
-                //});
             });
         });
     });
@@ -370,6 +251,7 @@ module.exports.getRoomInfo = getRoomInfo;
 module.exports.getRoomId = getRoomId;
 module.exports.getAllRooms = getAllRooms;
 module.exports.getUserRooms = getUserRooms;
+module.exports.checkOwner = checkOwner;
 module.exports.changeRoomInfo = changeRoomInfo;
 module.exports.changeRoomPass = changeRoomPass;
 module.exports.deleteRoom = deleteRoom;

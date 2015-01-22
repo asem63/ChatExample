@@ -16,6 +16,13 @@
         <tr>
             <td><a href="/rooms/room/{{ room.room_name }}">{{ room.room_name }}</a></td>
             <td>{{ room.room_descr }}</td>
+            <td>
+                {% if room.password %}
+                    Protected
+                {% else %}
+                    Public
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </table>

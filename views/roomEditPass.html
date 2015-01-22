@@ -18,9 +18,10 @@
     <div class="alert alert-danger">{{ message }}</div>
     {% endif %}
 
-    <form action="/room/changepass/{{room.id}}" method="post">
+    <form action="/room/changepass/{{roomName}}" method="post">
         <div class="form-group">
             <label>New password</label>
+            <div class="text-left">Leave blank to create public room</div>
             <input type="password" class="form-control" name="newpass">
         </div>
 
