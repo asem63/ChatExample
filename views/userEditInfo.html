@@ -21,7 +21,7 @@
     <form action="/user/changeinfo/{{user.id}}" method="post">
         <div class="form-group">
             <label>New email</label>
-            <input type="text" class="form-control" name="email">
+            <input class="form-control" type="email" name="email" required placeholder="Enter a valid email address">
         </div>
 
         <button type="submit" class="btn btn-warning btn-lg">Submit</button>

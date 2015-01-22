@@ -21,7 +21,7 @@
     <form action="/room/changeinfo/{{roomName}}" method="post">
         <div class="form-group">
             <label>New name</label>
-            <input type="text" class="form-control" name="newname">
+            <input type="text" pattern="^[a-zA-Z0-9]{4,32}$" placeholder="enter valid room name" class="form-control" name="newname">
         </div>
         <div class="form-group">
             <label>New description</label>

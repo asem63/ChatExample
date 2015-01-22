@@ -22,7 +22,8 @@
     <form action="/room/createroom" method="post">
         <div class="form-group">
             <label>Room name</label>
-            <input type="text" class="form-control" name="roomname">
+            <div class="text-left">4-32 characters long, no special characters or spaces</div>
+            <input type="text"  pattern="^[a-zA-Z0-9]{4,32}$" placeholder="enter valid room name" class="form-control" name="roomname">
         </div>
 
         <div class="form-group">
