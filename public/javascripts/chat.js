@@ -1,10 +1,11 @@
 /**
  * Created by asem63 on 22/01/15.
  */
+var socket = io();
+var roomName;
 $(document).ready(function(){
-    var socket = io();
 
-    var roomName = $("title").text();
+    roomName = $("title").text();
     socket.emit("connected_to_room", roomName);
 
     $("form").submit(function(e){
@@ -16,12 +17,31 @@ $(document).ready(function(){
     });
 
     socket.on("chat_message", function(msg){
-        console.log(msg);
         $("#messages").append($("<li>").text(msg));
     });
 
-    window.onbeforeunload = function() {
-        socket.emit("disconnect", {room: roomName, mes:"disconnected"});
-    };
+    socket.on("userlist", function(msg){
+        console.log(msg);
+        Object.keys(msg).forEach(function (key) {
+            $("#users").append($("<li id='"+key+"'>").text(msg[key]));
+        });
+    });
+
+    socket.on("adduser", function(msg){
+        $("#users").append($("<li id='" + msg.id + "'>").text(msg.name));
+    });
+
+    socket.on("user_disconnected", function(msg){
+        console.log("user discon:" + msg);
+        $("#messages").append($("<li>").text("<"+msg.userName+">: disconnected from room"));
+        $("#" + msg.id).remove();
+    });
+
+    $(window).on('beforeunload', function(){
+        socket.emit("room_disconnect", roomName);
+        return 'Are you sure you want to chat?';
+    });
+
 });
+
 

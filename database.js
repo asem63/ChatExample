@@ -232,30 +232,28 @@ function removeUserFromRoom(userId, roomName, callbackFn){
 
 function getAllUserNamesInRoom(roomName, callbackFn){
     getRoomId(roomName, function(err, roomId){
-        client.hvals("inRoom:"+roomId, function(err, result){
+        client.hgetall("inRoom:"+roomId, function(err, result){
             if (err){
-                return console.error("hdet users from room failed");
+                return console.error("getall users in room failed");
             }
             callbackFn(err, result);
         });
     });
 }
 
-function saveMessage(message, roomName, userName){
-    client.incr("unique_message_id", function(err, messageId) {
-        if (err){
-            return console.error("incr unique_massage_count failed");
-        }
-
-        getRoomId(roomName, function(err, roomId){
-            client.incr(roomId + "_unique_message_id", function(err, roomMessageId) {
+function saveMessage(message, roomName, callbackFn){
+    getRoomId(roomName, function(err, roomId){
+        client.incr(roomId + "_unique_message_id", function(err, roomMessageId) {
+            if (err){
+                return console.error("incr room_unique_massage_id failed");
+            }
+            client.hset("messages:" + roomId, roomMessageId, message, function (err) {
                 if (err){
-                    return console.error("incr room_unique_massage_id failed");
+                    return console.error("hset room messages failed");
                 }
-                // Message content = json string {userName:name, content:content}
-                client.hset("messages:" + roomId, roomMessageId, message, redis.print);
-
+                callbackFn(err);
             });
+
         });
     });
 }

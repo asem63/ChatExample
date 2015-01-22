@@ -9,31 +9,28 @@ module.exports = function(io){
 
         console.log("URL:"+socket.request.user.userName);
 
-        socket.on('disconnect', function(msg){
-            io.sockets.in(msg.room).emit('chat_message', socket.request.user.userName+":"+msg.mes);
+        socket.on('room_disconnect', function(msg){
+            console.log("<"+socket.request.user.userName+">: discon from room: " + msg);
+            io.sockets.in(msg).emit('user_disconnected', socket.request.user);
         });
 
         socket.on('chat_message', function(msg){
-            io.sockets.in(msg.room).emit('chat_message', msg.mes);
-        });
+            var message = "<"+socket.request.user.userName+">: "+msg.mes;
 
+            io.sockets.in(msg.room).emit('chat_message', message);
+            db.saveMessage(msg.mes, msg.room);
+        });
 
         socket.on('connected_to_room', function(msg){
             console.log("connected To ROOM:" + msg);
             var roomName = msg;
-            io.sockets.in(roomName).emit('chat_message', msg.mes);
+            io.sockets.in(roomName).emit('chat_message', "<"+socket.request.user.userName+">: connected to room");
             db.addUserToRoom(socket.request.user, roomName, function (err) {
-                if (err){
-                    socket.emit("chat_error", "database error");
-                }
-                socket.emit(roomName+"_adduser", socket.request.user.userName);
+                io.sockets.in(roomName).emit("adduser", {name: socket.request.user.userName, id:socket.request.user.id});
             });
 
             db.getAllUserNamesInRoom(roomName, function (err, result) {
-                if (err){
-                    socket.emit("chat_error", "database error");
-                }
-                socket.emit(socket.request.user.userName +"_"+ roomName+"_userlist", result);
+                io.to(socket.id).emit("userlist", result);
             });
 
             socket.join(roomName);
