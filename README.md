@@ -3,7 +3,7 @@ Simple node.js+socket.io chat with rooms, no anonimous users, registration witho
 
 Users can create, delete, edit (room password, description and name) their rooms.
 
-Users cen change their names and passwords.
+Users can change their names and passwords.
 
 Two types of rooms: public and password protected.
 
