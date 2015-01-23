@@ -199,7 +199,7 @@ function changeRoomPass(roomId, newPassword){
 }
 
 /**
- * Deletes room with all messages from database
+ * Deletes room with all related messages from database
  * @param {String} roomName
  * @param {Number} roomId
  * @param {Number} userId
@@ -215,9 +215,6 @@ function deleteRoom (roomName, roomId, userId, callbackFn){
     multi.del(roomId + "_unique_message_id", redis.print);
     multi.hdel("rooms", roomName, redis.print);
     multi.hdel("userRooms:" + userId, roomId, redis.print);
-
-
-
 
     multi.exec(function (err) {
         if (err){
