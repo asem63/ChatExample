@@ -274,8 +274,14 @@ function getRoomMessageCount(roomId, callbackFn){
 }
 
 function getMessageRange(roomName, start, end, callbackFn){
+    var localStart = start;
+
+    if (localStart < 0){
+        localStart = 0;
+    }
+
     var argsArr = [];
-    for (var i = start; i <= end; i++) {
+    for (var i = localStart; i <= end; i++) {
         argsArr.push(i);
     }
 

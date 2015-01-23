@@ -1,33 +1,37 @@
 {% extends 'base.html' %}
 
 {% block title %}{{room.room_name}}{% endblock %}
-{% block css %}
+{% block base_css %}
 <link rel="stylesheet" href="/stylesheets/chat.css"/>
 {% endblock %}
 
-{% block js %}
+{% block base_js %}
 <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
 <script src="/javascripts/chat.js"></script>
 {% endblock %}
 
-{% block content %}
-		<div class="chat-container col-xs-9">
-			<div class="text-left">{{ room.room_descr }}</div>
-			<div class="messages-container">
-				<div class="load-buttons row">
-					<a id="load100" class="btn btn-default" href="#" role="button">Load 100</a>
-					<a id="loadall" class="btn btn-default" href="#" role="button">Load All</a>
-				</div>
-				<ul id="messages"></ul>
-			</div>
-			<div class="message-form-container">
-				<form class="chat-form message-form" action="">
-					<input id="m" autocomplete="off" /><button class="btn">Send</button>
-				</form>
-			</div>
+{% block base_content %}
+	{% include 'includes/header.html'%}
+
+	<div class="chat-container col-xs-9">
+		<div class="room-description row text-left">{{ room.room_descr }}</div>
+		<div class="load-buttons row">
+			<a id="load100" class="btn btn-default pull-right" href="#" role="button">Load 100</a>
+			<a id="loadall" class="btn btn-default pull-right" href="#" role="button">Load All</a>
 		</div>
-		<div class="users-list-container col-xs-3">
-			<ul id="users"></ul>
+		<div class="messages-container">
+
+			<ul id="messages"></ul>
 		</div>
+		<div class="message-form-container">
+			<form class="chat-form message-form" action="">
+				<input id="m" required autocomplete="off" /><button class="btn">Send</button>
+			</form>
+		</div>
+	</div>
+	<div class="users-list-container col-xs-3">
+		<div class="text-left users-list-container-header">Users:</div>
+		<ul id="users"></ul>
+	</div>
 	{% include 'includes/modalChatReg.html'%}
 {% endblock %}

@@ -6,6 +6,7 @@ $(document).ready(function(){
     var socket = io();
     var roomName = document.URL.split("/").pop();
     var messageIndex;
+    var userId;
 
     socket.emit("connected_to_room", roomName);
 
@@ -22,7 +23,7 @@ $(document).ready(function(){
     /* send chat message to server */
     $(".message-form").submit(function(e){
         e.preventDefault();
-        socket.emit("chat_message", {room: roomName, mes:$("#m").val()});
+        socket.emit("chat_message", {room: roomName, mes: $("#m").val()});
         $("#m").val("");
     });
 
@@ -58,14 +59,18 @@ $(document).ready(function(){
 
     /* retrieve active user list from server */
     socket.on("userlist", function(msg){
-        Object.keys(msg).forEach(function (key) {
-            $("#users").append($("<li id='"+key+"'>").text(msg[key]));
+        userId = msg.userId;
+        console.log(msg.userList);
+        Object.keys(msg.userList).forEach(function (key) {
+            console.log(key);
+            $("#users").append("<li id='" + key + "'>" + msg.userList[key] + "</li>");
         });
     });
 
     /* retrieve new connected user from server */
     socket.on("adduser", function(msg){
-        $("#users").append($("<li id='" + msg.id + "'>").text(msg.name));
+        if(userId !== msg.id)
+            $("#users").append("<li id='" + msg.id + "'>" + msg.name + "</li>");
     });
 
     /* cleanup after user disconnects */

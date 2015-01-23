@@ -27,7 +27,7 @@ module.exports = function(io){
                 if(userInRoom){
                     var message = "<"+socket.request.user.userName+">: "+msg.mes;
                     io.sockets.in(msg.room).emit('chat_message', message);
-                    db.saveMessage(msg.mes, msg.room);
+                    db.saveMessage(message, msg.room);
                 }
             });
         });
@@ -70,6 +70,7 @@ module.exports = function(io){
             });
         });
 
+        /* handle private room initialization*/
         socket.on('private_room_auth', function(msg){
             var roomName = msg.room;
             var password = msg.password;
@@ -84,21 +85,22 @@ module.exports = function(io){
             });
         });
 
-
+        /* initialize room for user */
         function connectToRoom(roomName, roomId, socket){
-            io.sockets.in(roomName).emit('chat_message', "<"+socket.request.user.userName+">: connected to room");
-            db.addUserToRoom(socket.request.user, roomId, function (err) {
-                io.sockets.in(roomName).emit("adduser", {name: socket.request.user.userName, id:socket.request.user.id});
-            });
+            io.sockets.in(roomName).emit("chat_message", "<"+socket.request.user.userName+">: connected to room");
 
             db.getAllUserNamesInRoom(roomId, function (err, result) {
-                io.to(socket.id).emit("userlist", result);
+                console.log(result);
+                io.to(socket.id).emit("userlist", {userList: result, userId: socket.request.user.id});
+
+                db.addUserToRoom(socket.request.user, roomId, function (err) {
+                    io.sockets.in(roomName).emit("adduser", {name: socket.request.user.userName, id:socket.request.user.id});
+                });
             });
 
             db.getRoomMessageCount(roomId, function (err, count) {
                 io.to(socket.id).emit("set_message_index", count);
             });
-
             socket.join(roomName);
         }
     });

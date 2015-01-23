@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'common.html' %}
 
 {% block title %}Edit user{% endblock %}
 {% block css %}
@@ -21,11 +21,11 @@
     <form action="/user/changepass/{{user.id}}" method="post">
         <div class="form-group">
             <label>Old password</label>
-            <input type="password" class="form-control" name="oldpass">
+            <input type="password" class="form-control" required name="oldpass">
         </div>
         <div class="form-group">
             <label>New password</label>
-            <input type="password" class="form-control" name="newpass">
+            <input type="password" class="form-control" required name="newpass">
         </div>
 
         <button type="submit" class="btn btn-warning btn-lg">Submit</button>

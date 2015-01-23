@@ -9,14 +9,11 @@
     <script src="/external/jquery/jquery-2.1.0.min.js"></script>
     <script src="/external/bootstrap-3.1.1/js/bootstrap.min.js"></script>
 
-    {% block js %}{% endblock %}
-    {% block css %}{% endblock %}
+    {% block base_js %}{% endblock %}
+    {% block base_css %}{% endblock %}
 </head>
 <body>
-    {% include 'includes/header.html'%}
-    <div id="main" class="container">
-        {% block content %}{% endblock %}
-    </div>
-    {% include 'includes/footer.html'%}
+{% block base_content %}{% endblock %}
+
 </body>
 </html>
