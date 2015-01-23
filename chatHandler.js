@@ -12,7 +12,6 @@ module.exports = function(io){
         socket.on('room_disconnect', function(msg){
             db.userInRoom(socket.request.user, msg, function (err, userInRoom) {
                 if(userInRoom){
-                    console.log("<"+socket.request.user.userName+">: discon from room: " + msg);
                     db.removeUserFromRoom(socket.request.user.id, msg, function (err) {
                         io.sockets.in(msg).emit('user_disconnected', socket.request.user);
                     });
@@ -37,7 +36,7 @@ module.exports = function(io){
             db.userInRoom(socket.request.user, msg.room, function (err, userInRoom) {
                 if(userInRoom){
                     db.getAllMessages(msg.room, function(err, messages){
-                        io.sockets.in(msg.room).emit('get_messages', messages);
+                        io.to(socket.id).emit('get_messages', messages);
                     });
                 }
             });
@@ -48,7 +47,7 @@ module.exports = function(io){
             db.userInRoom(socket.request.user, msg.room, function (err, userInRoom) {
                 if(userInRoom){
                     db.getMessageRange(msg.room, msg.mi - 100, msg.mi, function(err, messages){
-                        io.sockets.in(msg.room).emit('get_messages', messages);
+                        io.to(socket.id).emit('get_messages', messages);
                     });
                 }
             });
@@ -56,7 +55,6 @@ module.exports = function(io){
 
         /* handle room initialization request */
         socket.on('connected_to_room', function(msg){
-            console.log("connected To ROOM:" + msg);
             var roomName = msg;
 
             db.getRoomId(roomName, function (err, roomId) {
@@ -91,6 +89,7 @@ module.exports = function(io){
 
             db.getAllUserNamesInRoom(roomId, function (err, result) {
                 console.log(result);
+
                 io.to(socket.id).emit("userlist", {userList: result, userId: socket.request.user.id});
 
                 db.addUserToRoom(socket.request.user, roomId, function (err) {

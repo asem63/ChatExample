@@ -8,6 +8,10 @@ $(document).ready(function(){
     var messageIndex;
     var userId;
 
+    var chatContainer = $(".messages-container");
+    var chat = $("#messages");
+    var users = $("#users");
+
     socket.emit("connected_to_room", roomName);
 
     socket.on("auth_required", function(){
@@ -29,7 +33,9 @@ $(document).ready(function(){
 
     /* receive chat message from server */
     socket.on("chat_message", function(msg){
-        $("#messages").append($("<li>").text(msg));
+        var chat = $("#messages");
+        chat.append($("<li>").text(msg));
+        chatContainer.scrollTop($(".messages-container")[0].scrollHeight);
     });
 
     /* ask server for all messages */
@@ -48,8 +54,9 @@ $(document).ready(function(){
     socket.on("get_messages", function(msg){
         messageIndex -= msg.length;
         msg.forEach(function (val) {
-            $("#messages").append($("<li>").text(val));
+            chat.append($("<li>").text(val));
         });
+        chatContainer.scrollTop($(".messages-container")[0].scrollHeight);
     });
 
     /* retrieve messageIndex from server */
@@ -60,23 +67,26 @@ $(document).ready(function(){
     /* retrieve active user list from server */
     socket.on("userlist", function(msg){
         userId = msg.userId;
-        console.log(msg.userList);
-        Object.keys(msg.userList).forEach(function (key) {
-            console.log(key);
-            $("#users").append("<li id='" + key + "'>" + msg.userList[key] + "</li>");
-        });
+        if(msg.userList !== null){
+            Object.keys(msg.userList).forEach(function (key) {
+                console.log(key);
+                users.append("<li id='" + key + "'>" + msg.userList[key] + "</li>");
+            });
+        }
+
     });
 
     /* retrieve new connected user from server */
     socket.on("adduser", function(msg){
-        if(userId !== msg.id)
-            $("#users").append("<li id='" + msg.id + "'>" + msg.name + "</li>");
+        if(userId !== msg.id){
+            users.append("<li id='" + msg.id + "'>" + msg.name + "</li>");
+        }
+
     });
 
     /* cleanup after user disconnects */
     socket.on("user_disconnected", function(msg){
-        console.log("user discon:" + msg);
-        $("#messages").append($("<li>").text("<"+msg.userName+">: disconnected from room"));
+        chat.append($("<li>").text("<"+msg.userName+">: disconnected from room"));
         $("#" + msg.id).remove();
     });
 

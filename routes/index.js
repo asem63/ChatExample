@@ -6,12 +6,13 @@ var router = express.Router();
 
 module.exports = function(passport){
 
-  /* GET login page. */
+  /* GET index page. */
   router.get("/", function(req, res) {
     // Display the Login page with any flash message, if any
     res.render("index", { message: req.flash("message"), sampleText: "Welcome to glorious chat!"});
   });
-  /* Handle Login POST */
+
+  /* GET login page. */
   router.get("/login", function(req, res){
     res.render("login", { message: req.flash("message") });
   });

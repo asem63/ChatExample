@@ -4,7 +4,7 @@ var db = require("./../database");
 var router = express.Router();
 
 module.exports = function(passport){
-  /* GET simple chat page. */
+  /* GET room page. */
   router.get('/chat/:name', mid.isAuthenticated, function(req, res, next) {
     var roomName = req.params.name;
     db.getRoomId(roomName, function (err, roomId) {
@@ -40,7 +40,7 @@ module.exports = function(passport){
     });
   });
 
-  /* GET room edition page. */
+  /* GET room creation page. */
   router.get("/createroom", mid.isAuthenticated, function(req, res){
     res.render("createRoom");
   });
@@ -63,12 +63,12 @@ module.exports = function(passport){
     });
   });
 
-  /* GET change room info page */
+  /* GET change room information page */
   router.get("/changeinfo/:roomname", mid.isAuthenticated, function(req, res) {
     res.render("roomEditInfo", { roomName: req.params.roomname});
   });
 
-  /* POST room edited data. */
+  /* Handle POST with room changed information */
   router.post("/changeinfo/:roomname", mid.isAuthenticated, function(req, res){
     var roomNewName = req.body.newname;
     var roomNewDescr = req.body.newdescr;
@@ -100,6 +100,7 @@ module.exports = function(passport){
     res.render("roomEditPass", { roomName: req.params.roomname});
   });
 
+  /* Handle POST with room new password */
   router.post("/changepass/:roomname", mid.isAuthenticated, function(req, res){
     var roomNewPass = req.body.newpass;
     var roomName = req.params.roomname;

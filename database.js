@@ -9,6 +9,12 @@ client.on("error", function (err) {
     console.error("DBError: " + err);
 });
 
+/**
+ * Adds new user to database (create unique id and calls insertUserInfo)
+ * @param {String} userName
+ * @param {String} password
+ * @param {Function} callbackFn
+ */
 
 function addNewUserToDb(userName, password, callbackFn){
     client.incr("unique_user_id", function(err, id) {
@@ -18,6 +24,14 @@ function addNewUserToDb(userName, password, callbackFn){
         insertUserInfo(userName, password, id, callbackFn);
     });
 }
+
+/**
+ * Insert new user to database
+ * @param {String} userName
+ * @param {String} password
+ * @param {Number} id
+ * @param {Function} callbackFn
+ */
 
 function insertUserInfo (userName, password, id, callbackFn){
     client.hset("users", userName, id, redis.print);
@@ -36,6 +50,14 @@ function insertUserInfo (userName, password, id, callbackFn){
     });
 }
 
+/**
+ * Changes user name in database
+ * @param {String} userName
+ * @param {Number} userId
+ * @param {String} newUserName
+ * @param {Function} callbackFn
+ */
+
 function changeUserName(userName, userId, newUserName, callbackFn){
     var multi = client.multi();
     multi.hdel("users", userName, redis.print);
@@ -50,6 +72,13 @@ function changeUserName(userName, userId, newUserName, callbackFn){
     });
 }
 
+/**
+ * Changes user password in database
+ * @param {Number} userId
+ * @param {String} password
+ * @param {Function} callbackFn
+ */
+
 function changeUserPass(userId, password, callbackFn){
     bcrypt.hash(password, 8, function(err, hash) {
         if (err){
@@ -62,6 +91,12 @@ function changeUserPass(userId, password, callbackFn){
     });
 }
 
+/**
+ * Gets user id by user name and passes it to callbackFn
+ * @param {String} userName
+ * @param {Function} callbackFn
+ */
+
 function getUserId(userName, callbackFn){
     client.hget("users", userName, function (err, userId) {
         if (err){
@@ -71,6 +106,11 @@ function getUserId(userName, callbackFn){
     });
 }
 
+/**
+ * Gets user information by user id and passes it to callbackFn
+ * @param {Number} userId
+ * @param {Function} callbackFn
+ */
 function getUserInfo(userId, callbackFn){
     client.hgetall("user:"+userId, function(err, info){
         if (err){
@@ -80,6 +120,14 @@ function getUserInfo(userId, callbackFn){
     });
 }
 
+/**
+ * Adds new room to database
+ * Creates unique room id, links creator name to roomName and roomId.
+ * @param {String} roomName
+ * @param {String} password
+ * @param {String} userName
+ * @param {String} roomDescr
+ */
 
 function addNewRoomToDb(roomName, password, userName, roomDescr){
     client.incr("unique_room_id", function(err, id) {
@@ -106,6 +154,16 @@ function addNewRoomToDb(roomName, password, userName, roomDescr){
     });
 }
 
+/**
+ * Changes room information (room name and room description)
+ * @param {String} roomName
+ * @param {Number} roomId
+ * @param {Number} userId
+ * @param {String} newRoomName
+ * @param {String} newRoomDescr
+ * @param {Function} callbackFn
+ */
+
 function changeRoomInfo(roomName, roomId, userId, newRoomName, newRoomDescr, callbackFn){
     var multi = client.multi();
 
@@ -121,7 +179,13 @@ function changeRoomInfo(roomName, roomId, userId, newRoomName, newRoomDescr, cal
     });
 }
 
-function changeRoomPass(roomId, newPassword, callbackFn){
+/**
+ * Changes room password
+ * @param {Number} roomId
+ * @param {String} newPassword
+ */
+
+function changeRoomPass(roomId, newPassword){
     if(newPassword !== ""){
         bcrypt.hash(newPassword, 8, function(err, hash) {
             if (err){
@@ -133,6 +197,14 @@ function changeRoomPass(roomId, newPassword, callbackFn){
         client.hset("room:" + roomId, "password", "", redis.print);
     }
 }
+
+/**
+ * Deletes room from database
+ * @param {String} roomName
+ * @param {Number} roomId
+ * @param {Number} userId
+ * @param {Function} callbackFn
+ */
 
 function deleteRoom (roomName, roomId, userId, callbackFn){
     var multi = client.multi();
@@ -150,6 +222,12 @@ function deleteRoom (roomName, roomId, userId, callbackFn){
     });
 }
 
+/**
+ * Gets room id by room name and passes it to callbackFn
+ * @param {String} roomName
+ * @param {Function} callbackFn
+ */
+
 function getRoomId(roomName, callbackFn){
     client.hget("rooms", roomName, function (err, roomId) {
         if (err){
@@ -158,6 +236,12 @@ function getRoomId(roomName, callbackFn){
         callbackFn(err, roomId);
     });
 }
+
+/**
+ * Gets all rooms created by certain user and passes them to callback function
+ * @param {Number} userId
+ * @param {Function} callbackFn
+ */
 
 function getUserRooms(userId, callbackFn){
     client.hkeys("userRooms:" + userId, function (err, result) {
@@ -176,11 +260,23 @@ function getUserRooms(userId, callbackFn){
     });
 }
 
+/**
+ * Checks if user created given room
+ * if true passes room name to callback function
+ * @param {Number} userId
+ * @param {Function} callbackFn
+ */
+
 function checkOwner (userId, roomId, callbackFn){
     client.hget("userRooms:" + userId, roomId, function(err, result){
         callbackFn(err, result);
     });
 }
+
+/**
+ * Gets all rooms information from database and passes it to callback function
+ * @param {Function} callbackFn
+ */
 
 function getAllRooms(callbackFn){
     client.hvals("rooms", function(err, roomIds){
@@ -199,6 +295,12 @@ function getAllRooms(callbackFn){
     });
 }
 
+/**
+ * Gets room info by room id and passes it to callback function
+ * @param {Number} roomId
+ * @param {Function} callbackFn
+ */
+
 function getRoomInfo(roomId, callbackFn){
     client.hgetall("room:"+roomId, function(err, pass){
         if (err){
@@ -207,6 +309,13 @@ function getRoomInfo(roomId, callbackFn){
         callbackFn(err, pass);
     });
 }
+
+/**
+ * Checks if user currently in given room and passes user name to callback Function
+ * @param {Object} user
+ * @param {String} roomName
+ * @param {Function} callbackFn
+ */
 
 function userInRoom(user, roomName, callbackFn){
     getRoomId(roomName, function(err, roomId){
@@ -219,6 +328,13 @@ function userInRoom(user, roomName, callbackFn){
     });
 }
 
+/**
+ * Add user to given room
+ * @param {Object} user
+ * @param {Number} roomId
+ * @param {Function} callbackFn
+ */
+
 function addUserToRoom(user, roomId, callbackFn){
     client.hset("inRoom:"+roomId, user.id, user.userName, function(err){
         if (err){
@@ -227,6 +343,13 @@ function addUserToRoom(user, roomId, callbackFn){
         callbackFn(err);
     });
 }
+
+/**
+ * Removes user from given room
+ * @param {Number} userId
+ * @param {String} roomName
+ * @param {Function} callbackFn
+ */
 
 function removeUserFromRoom(userId, roomName, callbackFn){
     getRoomId(roomName, function(err, roomId){
@@ -239,6 +362,12 @@ function removeUserFromRoom(userId, roomName, callbackFn){
     });
 }
 
+/**
+ * Gets all current users in given room and passes them to callback function
+ * @param {Number} roomId
+ * @param {Function} callbackFn
+ */
+
 function getAllUserNamesInRoom(roomId, callbackFn){
     client.hgetall("inRoom:"+roomId, function(err, result){
         if (err){
@@ -247,6 +376,12 @@ function getAllUserNamesInRoom(roomId, callbackFn){
         callbackFn(err, result);
     });
 }
+
+/**
+ * Saves message to database
+ * @param {String} message
+ * @param {String} roomName
+ */
 
 function saveMessage(message, roomName){
     getRoomId(roomName, function(err, roomId){
@@ -264,6 +399,14 @@ function saveMessage(message, roomName){
     });
 }
 
+/**
+ * Gets gets number of messages in given room and passes it to callback function
+ * @param {String} roomName
+ * @param {Number} start
+ * @param {Number} end
+ * @param {Function} callbackFn
+ */
+
 function getRoomMessageCount(roomId, callbackFn){
     client.get(roomId + "_unique_message_id", function(err, count){
         if (err){
@@ -272,6 +415,14 @@ function getRoomMessageCount(roomId, callbackFn){
         callbackFn(err, count);
     });
 }
+
+/**
+ * Gets given range of messages from room and passes them to callback function
+ * @param {String} roomName
+ * @param {Number} start
+ * @param {Number} end
+ * @param {Function} callbackFn
+ */
 
 function getMessageRange(roomName, start, end, callbackFn){
     var localStart = start;
@@ -294,6 +445,12 @@ function getMessageRange(roomName, start, end, callbackFn){
         });
     });
 }
+
+/**
+ * Gets all messages from given room and passes them to callback function
+ * @param {String} roomName
+ * @param {Function} callbackFn
+ */
 
 function getAllMessages(roomName, callbackFn){
 
