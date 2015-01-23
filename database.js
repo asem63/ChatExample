@@ -208,14 +208,23 @@ function getRoomInfo(roomId, callbackFn){
     });
 }
 
-function addUserToRoom(user, roomName, callbackFn){
+function userInRoom(user, roomName, callbackFn){
     getRoomId(roomName, function(err, roomId){
-        client.hset("inRoom:"+roomId, user.id, user.userName, function(err){
+        client.hget("inRoom:"+roomId, user.id, function(err, result){
             if (err){
-                return console.error("hset users to room failed");
+                return console.error("hget users from room failed");
             }
-            callbackFn(err);
+            callbackFn(err, result);
         });
+    });
+}
+
+function addUserToRoom(user, roomId, callbackFn){
+    client.hset("inRoom:"+roomId, user.id, user.userName, function(err){
+        if (err){
+            return console.error("hset users to room failed");
+        }
+        callbackFn(err);
     });
 }
 
@@ -230,18 +239,16 @@ function removeUserFromRoom(userId, roomName, callbackFn){
     });
 }
 
-function getAllUserNamesInRoom(roomName, callbackFn){
-    getRoomId(roomName, function(err, roomId){
-        client.hgetall("inRoom:"+roomId, function(err, result){
-            if (err){
-                return console.error("getall users in room failed");
-            }
-            callbackFn(err, result);
-        });
+function getAllUserNamesInRoom(roomId, callbackFn){
+    client.hgetall("inRoom:"+roomId, function(err, result){
+        if (err){
+            return console.error("getall users in room failed");
+        }
+        callbackFn(err, result);
     });
 }
 
-function saveMessage(message, roomName, callbackFn){
+function saveMessage(message, roomName){
     getRoomId(roomName, function(err, roomId){
         client.incr(roomId + "_unique_message_id", function(err, roomMessageId) {
             if (err){
@@ -251,26 +258,19 @@ function saveMessage(message, roomName, callbackFn){
                 if (err){
                     return console.error("hset room messages failed");
                 }
-                callbackFn(err);
             });
 
         });
     });
 }
 
-function getRoomMessageCount(roomName, callbackFn){
-    getRoomId(roomName, function(err, roomId){
+function getRoomMessageCount(roomId, callbackFn){
+    client.get(roomId + "_unique_message_id", function(err, count){
         if (err){
-            return console.error("getRoomId failed");
+            return console.error("get room messages count failed");
         }
-        client.get(roomId + "_unique_message_id", function(err, count){
-            if (err){
-                return console.error("get room messages count failed");
-            }
-            callbackFn(err, count);
-        });
+        callbackFn(err, count);
     });
-
 }
 
 function getMessageRange(roomName, start, end, callbackFn){
@@ -322,6 +322,7 @@ module.exports.getUserId = getUserId;
 module.exports.changeUserName = changeUserName;
 module.exports.changeUserPass = changeUserPass;
 
+module.exports.userInRoom = userInRoom;
 module.exports.addUserToRoom = addUserToRoom;
 module.exports.removeUserFromRoom = removeUserFromRoom;
 module.exports.getAllUserNamesInRoom = getAllUserNamesInRoom;

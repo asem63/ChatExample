@@ -4,21 +4,29 @@
 
 $(document).ready(function(){
     var socket = io();
-    var roomName = $("title").text();
+    var roomName = document.URL.split("/").pop();
     var messageIndex;
 
     socket.emit("connected_to_room", roomName);
 
-    /* send message to server */
-    $("form").submit(function(e){
-        console.log("here");
-        e.preventDefault()
-        socket.emit("chat_message", {room: roomName, mes:$("#m").val()});
-        $("#m").val("");
-        console.log("here1");
+    socket.on("auth_required", function(){
+        $("#roomPassModal").modal("show");
     });
 
-    /* receive message from server */
+    /* send private room auth request to server */
+    $("#modal-submit").click(function(){
+        socket.emit("private_room_auth", {room: roomName, password: $("#passwordInput").val()});
+        $("#roomPassModal").modal("hide");
+    });
+
+    /* send chat message to server */
+    $(".message-form").submit(function(e){
+        e.preventDefault();
+        socket.emit("chat_message", {room: roomName, mes:$("#m").val()});
+        $("#m").val("");
+    });
+
+    /* receive chat message from server */
     socket.on("chat_message", function(msg){
         $("#messages").append($("<li>").text(msg));
     });

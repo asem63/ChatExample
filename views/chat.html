@@ -21,7 +21,7 @@
 				<ul id="messages"></ul>
 			</div>
 			<div class="message-form-container">
-				<form action="">
+				<form class="chat-form message-form" action="">
 					<input id="m" autocomplete="off" /><button class="btn">Send</button>
 				</form>
 			</div>
@@ -29,4 +29,5 @@
 		<div class="users-list-container col-xs-3">
 			<ul id="users"></ul>
 		</div>
+	{% include 'includes/modalChatReg.html'%}
 {% endblock %}
