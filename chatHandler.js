@@ -88,7 +88,6 @@ module.exports = function(io){
             io.sockets.in(roomName).emit("chat_message", "<"+socket.request.user.userName+">: connected to room");
 
             db.getAllUserNamesInRoom(roomId, function (err, result) {
-                console.log(result);
 
                 io.to(socket.id).emit("userlist", {userList: result, userId: socket.request.user.id});
 

@@ -8,44 +8,52 @@ $(document).ready(function(){
     var messageIndex;
     var userId;
 
+    var modalPassForm = $("#roomPassModal");
+    var passwordSubmitBtn = $("#modal-submit");
+
     var chatContainer = $(".messages-container");
+    var sageForm = $(".message-form");
     var chat = $("#messages");
     var users = $("#users");
+    var message = $("#m");
+
+    var loadallBtn = $("#loadall");
+    var load100Btn = $("#load100");
 
     socket.emit("connected_to_room", roomName);
 
     socket.on("auth_required", function(){
-        $("#roomPassModal").modal("show");
+        modalPassForm.modal("show");
     });
 
     /* send private room auth request to server */
-    $("#modal-submit").click(function(){
+    passwordSubmitBtn.click(function(){
         socket.emit("private_room_auth", {room: roomName, password: $("#passwordInput").val()});
-        $("#roomPassModal").modal("hide");
+        modalPassForm.modal("hide");
     });
 
     /* send chat message to server */
-    $(".message-form").submit(function(e){
+    sageForm.submit(function(e){
         e.preventDefault();
-        socket.emit("chat_message", {room: roomName, mes: $("#m").val()});
-        $("#m").val("");
+
+        socket.emit("chat_message", {room: roomName, mes: message.val()});
+        message.val("");
     });
 
     /* receive chat message from server */
     socket.on("chat_message", function(msg){
-        var chat = $("#messages");
         chat.append($("<li>").text(msg));
         chatContainer.scrollTop($(".messages-container")[0].scrollHeight);
     });
 
     /* ask server for all messages */
-    $("#loadall").click(function(){
+    loadallBtn.click(function(){
         if(typeof messageIndex !== "undefined" && messageIndex > 0 )
             socket.emit("get_all_messages", {room: roomName});
     });
 
     /* ask server for 100 messages */
-    $("#load100").click(function(){
+    load100Btn.click(function(){
         if(typeof messageIndex !== "undefined" && messageIndex > 0 )
             socket.emit("get_100_messages", {room: roomName, mi: messageIndex});
     });
