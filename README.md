@@ -1,4 +1,4 @@
-# ChatExample
+# ChatExample (Examle of bad code)
 Simple node.js+socket.io chat with rooms, no anonimous users, registration without email confirmation.
 
 Users can create, delete, edit (room password, description and name) their rooms.
